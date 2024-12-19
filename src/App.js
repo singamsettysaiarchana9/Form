@@ -16,19 +16,21 @@ function App() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-    setErrors({ ...errors, [name]: "" }); 
+    setErrors({ ...errors, [name]: "" }); // Clear errors on change
   };
 
   const validate = () => {
     const newErrors = {};
 
-    
-    if (!formData.email.includes("@")) {
-      newErrors.email = "Email must contain an '@' symbol.";
-    }
-    if (formData.phoneNumber.length !== 10 || isNaN(formData.phoneNumber)) {
+    if (!formData.name.trim()) newErrors.name = "Name is required.";
+    if (!formData.email.includes("@")) newErrors.email = "Invalid email address.";
+    if (!formData.phoneNumber.match(/^\d{10}$/))
       newErrors.phoneNumber = "Phone number must be exactly 10 digits.";
-    }
+    if (!formData.employeeId.trim()) newErrors.employeeId = "Employee ID is required.";
+    if (!formData.department.trim()) newErrors.department = "Department is required.";
+    if (!formData.dateOfJoining)
+      newErrors.dateOfJoining = "Date of joining is required.";
+    if (!formData.role.trim()) newErrors.role = "Role is required.";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -36,16 +38,12 @@ function App() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validate()) {
-      return;
-    }
+    if (!validate()) return;
 
     try {
-      const response = await fetch("http://localhost:5000/addEmployee", {
+      const response = await fetch("http://127.0.0.1:3000/addEmployee", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
@@ -60,7 +58,6 @@ function App() {
           dateOfJoining: "",
           role: "",
         });
-        setErrors({});
       } else {
         const errorResponse = await response.json();
         alert(`Error: ${errorResponse.message}`);
@@ -72,66 +69,27 @@ function App() {
   };
 
   return (
-    <div
-      style={{
-        padding: "50px",
-        display: "flex",
-        justifyContent: "center",
-        minHeight: "100vh",
-        background: "#f9f9f9",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          border: "2px solid #ccc",
-          padding: "20px",
-          width: "500px",
-        }}
-      >
-        <h1 style={{ fontSize: "36px", fontWeight: "bold", marginBottom: "20px" }}>
-          Employee Management System
-        </h1>
+    <div style={{ padding: "50px", background: "#f9f9f9", minHeight: "100vh" }}>
+      <div style={{ maxWidth: "500px", margin: "0 auto", padding: "20px", border: "1px solid #ccc", background: "#fff" }}>
+        <h1>Employee Management System</h1>
         <form onSubmit={handleSubmit}>
-          {[
-            "name",
-            "email",
-            "employeeId",
-            "department",
-            "phoneNumber",
-            "dateOfJoining",
-            "role",
-          ].map((field) => (
-            <div key={field} style={{ marginBottom: "10px" }}>
-              <h2 style={{ marginBottom: "5px" }}>{field.replace(/([A-Z])/g, " $1")}</h2>
+          {Object.keys(formData).map((field) => (
+            <div key={field} style={{ marginBottom: "15px" }}>
+              <label style={{ display: "block", marginBottom: "5px" }}>
+                {field.replace(/([A-Z])/g, " $1").toUpperCase()}:
+              </label>
               <input
                 type={field === "dateOfJoining" ? "date" : "text"}
                 name={field}
                 placeholder={`Enter ${field}`}
                 value={formData[field]}
                 onChange={handleChange}
-                style={{ padding: "10px", fontSize: "16px", width: "450px" }}
+                style={{ width: "100%", padding: "8px", fontSize: "16px" }}
               />
-              {errors[field] && (
-                <p style={{ color: "red", fontSize: "14px" }}>{errors[field]}</p>
-              )}
+              {errors[field] && <span style={{ color: "red", fontSize: "14px" }}>{errors[field]}</span>}
             </div>
           ))}
-          <button
-            type="submit"
-            style={{
-              marginTop: "20px",
-              padding: "10px 20px",
-              fontSize: "16px",
-              backgroundColor: "#4CAF50",
-              color: "white",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-            }}
-          >
+          <button type="submit" style={{ padding: "10px 20px", backgroundColor: "#4CAF50", color: "#fff", border: "none", borderRadius: "5px" }}>
             Submit
           </button>
         </form>
